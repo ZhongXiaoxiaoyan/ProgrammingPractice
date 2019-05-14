@@ -1,0 +1,113 @@
+题目：数组中的重复数字。在一个长度为n的数组里所有的数字都在0~n-1范围，数组中某些数字是重复的，但是不知道有几个数字重复了，请找出数组中任意一个重复的数字。例如：长度为7的数组[2,3,1,2,5,3],重复的数字是2或者3。
+
+分析：
+
+方法(1):用两层for循环，拿着每一个数据与剩下的每一个比较，看看有没有再次出现时间复杂度O(n*n)(参数中ret是返回型参数，带回那个找找到的重复数)。
+bool find_duplicate1(int arr[], int len, int* ret)
+{
+	for (int i = 0; i < len; i++)
+	{
+		//j得从i的下一个位置开始
+		for (int j = i + 1; j < len; j++)
+		{
+			if (arr[i] == arr[j])
+			{
+				*ret = arr[i];
+				return true;
+			}
+		}
+	}
+	//来到这说明没找到
+	return false;
+}
+
+方法(2),先排序(我们这采用快速排序)，然后找出相邻的相同的两个元素快速排序调用的函数(升序)。时间复杂度O(nlogn)
+
+int compare(const void* a, const void* b)
+{
+	return *(int*)a - *(int*)b;
+}
+bool find_duplicate2(int arr[], int len, int* ret)
+{
+	//调用快速排序
+	qsort(arr, len, sizeof(arr[0]), compare);
+ 
+	//找相邻并且相同的元素
+	for (int i = 0; i < len-1; i++)
+	{
+		if (arr[i] == arr[i + 1])
+		{
+			*ret = arr[i];
+			return true;
+		}
+	}
+	//来到这，说明没找到
+	return false;
+}
+
+方法(3)：哈希法。建立一个大小为n的count数组，从头扫描原数组中的每一个元素，判断在count数组中以该元素为下标的统计值是否为1，如果已经是1了，那么找到这个重复元素了，如果不是1，则将其置1，然后继续下一个元素...时间复杂度O(n),空间复杂度O(n)
+
+bool find_duplicate3(int arr[], int len, int* ret)
+{
+	int* count = (int*)malloc(sizeof(int)*len);
+ 
+	for (int i = 0; i < len; i++)
+	{
+		if (count[arr[i]] == 1)
+		{
+			*ret = arr[i];
+			return true;
+		}
+		else
+		{
+			count[arr[i]] = 1;
+		}
+	}
+	//来到这，说明没找到
+	return false;
+}
+
+方法(4):由于数组大小为n,则下标为0~n-1,又已知数组大小也是0~n-1,那么我们知道，如果说元素没有重复的话，排好序后元素i就应该在下标为i的位置上，但是现在元素有重复的。那么我们可以从头开始依次扫描原数组中的元素，如果该元素等于其下标值，那么就判断下一个元素，如果不相等，那么该元素要么大于该下标，要么小于该下标，此时判断该元素是不是等于以该元素为下标的对应元素，如果是那么就找到重复的这个元素了，如果不是那么就将该元素与以该元素为下标的位置上(这个过程起始是逐渐将每个元素都放在以它自己为下标的位置上，即元素与下标一一对应,如果遇到的元素是符合这种一一对应的，就看下一个，如果不对应，那就看看之前出现过没有，没有出现就把它放在符合一一对应的位置上)时间复杂度O(n),空间复杂度O(1)，每个元素最多2次就可以放在它应该放的位置。
+
+bool find_duplicate4(int arr[], int len, int* ret)
+{
+	//参数合法性检测
+	if (arr == NULL || len < 0)
+	{
+		return false;
+	}
+	for (int i = 0; i < len; i++)
+	{
+		if (arr[i]<0 || arr[i]>len - 1)
+		{
+			return false;
+		}
+	}
+ 
+	for (int i = 0; i < len; i++)
+	{
+		// 只要该元素与它的下标不一一对应，就一直交换
+		//如果压根就没有与该下标相同的元素也没有关系
+		//因为交换的过程中不断让其他元素与自己的下标一一对应
+		//既然该元素与它的下标对应，那么就说明它拿的是别人的
+		//下标，当别人慢慢一一对应后，我们会通过该元素和该元素
+		//作为下标的元素进行比较，此时别人一一对应了，通过
+		//比较就会找到这个重复元素了
+		while (arr[i] != i)
+		{
+			if (arr[arr[i]] == arr[i])
+			{
+				*ret = arr[i];
+				return true;
+			}
+			else//将arr[i]放在与其对应下标的位置
+			{
+				int tmp = arr[i];
+				arr[i] = arr[tmp];
+				arr[tmp] = tmp;
+			}
+		}
+	}
+	//来到这，说明没有
+	return false;
+}

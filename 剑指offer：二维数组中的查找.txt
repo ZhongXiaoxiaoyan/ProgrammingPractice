@@ -1,0 +1,40 @@
+题目描述
+
+在一个二维数组中（每个一维数组的长度相同），每一行都按照从左到右递增的顺序排序，每一列都按照从上到下递增的顺序排序。请完成一个函数，输入这样的一个二维数组和一个整数，判断数组中是否含有该整数。
+
+算法思想：
+
+方法一：
+
+     按行列遍历整个数组，若找到，则返回真， 若找不到，返回假。 算法时间复杂度（O(n平方)）。
+
+方法二：
+
+    因为数组是每行从左到右递增顺序排序，每列从上到下递增排序。
+
+    所以可以从右上角，或左下角开始遍历， 我们先从右上角开始遍历， 若查找的元素大于右上角元素，则往下找（每列从上往下递增）； 若查找的元素小于右上角元素，则往左找（每行从左往右递增）。 同时控制行列不能越界即可。
+
+ 同理可得，从左下角元素开始类似上述方法。
+
+
+代码如下：
+ bool Find(int target, vector<vector<int> > array) {
+        int m=array.size();
+        int n=array[0].size();
+        int row=m-1;
+        int column=0;
+      
+        if(m==0&&n==0)
+            return false;
+    
+        while(row>=0&&column<n)
+        {
+            if(target>array[row][column])
+                column++;
+            else if (target<array[row][column])
+                     row--;
+            else
+                return true;
+        }
+        return false;
+    }

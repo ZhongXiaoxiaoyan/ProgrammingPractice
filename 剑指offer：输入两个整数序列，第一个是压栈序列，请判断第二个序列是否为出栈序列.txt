@@ -1,0 +1,20 @@
+题目：输入两个整数序列，第一个是压栈序列，请判断第二个序列是否为出栈序列。假设压入栈的所有元素不相等。
+
+分析：模拟它的入栈过程，看看能不能有这样的出栈序列(借助辅助栈)
+bool is_valid_order(vector<int>& push, vector<int>& pop)
+{
+	stack<int> s;
+	int pushindex = 0;
+	int popindex = 0;
+ 
+	while (pushindex < push.size())//遍历入栈元素
+	{
+		s.push(push[pushindex++]);//按照序入栈
+		while (!s.empty() && s.top() == pop[popindex])//如果栈顶元素==出栈序元素，则栈顶元素出栈
+		{
+			s.pop();
+			popindex++;
+		}
+	}
+	return s.empty();//入栈序遍历完后，栈为空就说明合法
+}

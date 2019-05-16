@@ -1,0 +1,117 @@
+题目：求1+2+...+n,要求不能使用乘除法，for、while、if、else、switch、case等关键字以及判断语句
+
+分析：
+
+方法(1):利用构造函数。我们定义一个类，类中定义两个静态成员变量，让构造函数里面操作这两个静态的成员变量，然后创建n个对象，即可完成我们想要的。
+
+方法(2):利用虚函数。模拟递归，但是出口条件不能用条件语句判断，我们用两个函数来模拟(一个模拟继续递归，一个模拟出口条件)当n不为0调用B:sum(),否则调用A:sum(),相当于递归出口。
+
+方法(3):与方法(2)思路一致，只是在C语言层次，只能用函数指针(数组)来模拟，来决定调用哪个函数(也是一个函数模拟递归调用一个函数模拟出口条件)
+
+方法(4):利用非类型模板(加特化)类型。模板模拟递归，特化模拟递归出口总体思路还是递归+递归出口(并且这两步不用条件语句判断)，这个用非类型模板的方法时间复杂度为O(1)，因为它是在编译时就计算了，但是缺点是n必须是在编译期间就能确定的常量，不能是变量，而且编译器对递归编译代码的递归深度有限制。
+class Sum
+{
+private:
+	static int n;
+	static int sum;
+public:
+	Sum()
+	{
+		n++;
+		sum += n;
+	}
+ 
+	static int ret()
+	{
+		return sum;
+	}
+};
+int Sum::n = 0;
+int Sum::sum = 0;
+ 
+int s_sum(int n)
+{
+	Sum* p = new Sum[n];
+	delete[]p;
+	p = nullptr;
+ 
+	//因为只有非静态成员函数可以这样调用
+	//非静态成员只能用对象来调用，因此将
+	//ret()定义成静态成员函数
+	return Sum::ret();
+}
+
+
+
+class A
+{
+public:
+	virtual int sum(int n)//出口
+	{
+		return 0;
+	}
+};
+ 
+A* a[2];//指针数组
+ 
+class B :public A
+{
+public:
+	virtual int sum(int n)//递归
+	{
+		return n + a[!!n]->sum(n - 1);
+	}
+};
+ 
+int s_sum(int n)
+{
+	A a1;
+	B b1;
+	a[0] = &a1;
+	a[1] = &b1;
+ 
+	//a[1]是父类的指针(而且子类完成了虚函数重新)，构成多态，当n不等于0时，调用
+	//B::sum()，而且是递归的，递归时，当n等于0了，调用A::sum()即递归出口
+	//这里的!!n起到了关键作用，当n==0时，a[!!n]==a[0],即父类指针指向父类对象，就会调用父类A::sum()
+	int ret = a[1]->sum(n);
+	return ret;
+ 
+}
+
+
+typedef int(*pfun)(int);//定义函数指针类型，函数类型返回值为int,参数为一个int
+ 
+int fun1(int n)//模拟出口
+{
+	return 0;
+}
+ 
+int fun2(int n)
+{
+	static pfun f[2] = {fun1, fun2};//函数指针数组
+	return n + f[!!n](n - 1);//n非0调用fun2(n-1)即递归，0调用fun1()即递归出口
+}
+
+
+
+template<size_t n>
+class Sum
+{
+public:
+	//匿名枚举(可直接取里面的变量)
+	//枚举最后一个成员没有，
+	enum
+	{
+		ret = n + Sum<n - 1>::ret
+	};
+};
+//特化n==1时(即出口)
+template<>
+class Sum<1>
+{
+public:
+	enum 
+	{
+		ret = 1
+	};
+};
